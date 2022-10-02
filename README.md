@@ -1,2 +1,2 @@
 # PKU-computer-architecture
-PKU computer architecture course
+computer architecture course @ PKU, Fall 2022
