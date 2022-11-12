@@ -53,6 +53,7 @@ parser.add_option('--Random', action="store_true")
 parser.add_option('--LRU', action="store_true")
 parser.add_option('--MRU', action="store_true")
 parser.add_option('--MyMRU', action="store_true")
+parser.add_option('--Clock', action="store_true")
 (options, args) = parser.parse_args()
 
 root = Root()
@@ -93,6 +94,10 @@ elif (options.MyMRU):
 	root.system.cpu.icache.replacement_policy = MyMRURP()
 	root.system.cpu.dcache.replacement_policy = MyMRURP()
 	root.system.l2cache.replacement_policy = MyMRURP()
+elif (options.Clock):
+	root.system.cpu.icache.replacement_policy = ClockRP()
+	root.system.cpu.dcache.replacement_policy = ClockRP()
+	root.system.l2cache.replacement_policy = ClockRP()
 
 #root.system.cpu.icache_port = root.system.membus.cpu_side_ports
 #root.system.cpu.dcache_port = root.system.membus.cpu_side_ports

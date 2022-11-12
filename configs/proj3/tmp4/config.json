@@ -445,8 +445,8 @@
                 "prefetcher": null,
                 "replace_expansions": true,
                 "replacement_policy": {
-                    "type": "MRURP",
-                    "cxx_class": "gem5::replacement_policy::MRU",
+                    "type": "ClockRP",
+                    "cxx_class": "gem5::replacement_policy::Clock",
                     "name": "replacement_policy",
                     "path": "system.cpu.dcache.replacement_policy",
                     "eventq_index": 0
@@ -551,8 +551,8 @@
                 "prefetcher": null,
                 "replace_expansions": true,
                 "replacement_policy": {
-                    "type": "MRURP",
-                    "cxx_class": "gem5::replacement_policy::MRU",
+                    "type": "ClockRP",
+                    "cxx_class": "gem5::replacement_policy::Clock",
                     "name": "replacement_policy",
                     "path": "system.cpu.icache.replacement_policy",
                     "eventq_index": 0
@@ -738,8 +738,8 @@
             "prefetcher": null,
             "replace_expansions": true,
             "replacement_policy": {
-                "type": "MRURP",
-                "cxx_class": "gem5::replacement_policy::MRU",
+                "type": "ClockRP",
+                "cxx_class": "gem5::replacement_policy::Clock",
                 "name": "replacement_policy",
                 "path": "system.l2cache.replacement_policy",
                 "eventq_index": 0
