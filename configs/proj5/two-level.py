@@ -13,11 +13,18 @@ parser.add_option('--ddr4_2400_8x8', action="store_true")
 parser.add_option('--lpddr2_s4_1066_1x32', action="store_true")
 parser.add_option('--wideio_200_1x128', action="store_true")
 parser.add_option('--lpddr3_1600_1x32', action="store_true")
-parser.add_option('--Random', action="store_true")
-parser.add_option('--LRU', action="store_true")
-parser.add_option('--MRU', action="store_true")
-parser.add_option('--MyMRU', action="store_true")
-parser.add_option('--Clock', action="store_true")
+
+
+parser.add_option('--mysimple', action="store_true")
+parser.add_option('--local', action="store_true")
+parser.add_option("--tournament", action="store_true")
+parser.add_option('--bimode', action="store_true")
+parser.add_option('--btbentry', type="int", default=4096)
+parser.add_option('--ras', type="int", default=16)
+parser.add_option('--localsize', type="int", default=2048)
+parser.add_option('--localhissize', type="int", default=2048)
+parser.add_option('--globalsize', type="int", default=8192)
+parser.add_option('--choicesize', type="int", default=8192)
 (options, args) = parser.parse_args()
 
 root = Root()
@@ -34,7 +41,7 @@ root.system.mem_ctrl = MemCtrl()
 root.system.mem_ctrl.dram = DDR4_2400_16x4 ()
 root.system.mem_ctrl.dram.range = root.system.mem_ranges[0]
 
-root.system.cpu = TimingSimpleCPU()
+root.system.cpu = DerivO3CPU()
 
 root.system.membus = SystemXBar()
 
@@ -42,26 +49,33 @@ root.system.cpu.icache = L1ICache()
 root.system.cpu.dcache = L1DCache()
 root.system.l2cache = L2Cache()
 
-if (options.Random):
-	root.system.cpu.icache.replacement_policy = RandomRP()
-	root.system.cpu.dcache.replacement_policy = RandomRP()
-	root.system.l2cache.replacement_policy = RandomRP()
-elif (options.LRU):
-	root.system.cpu.icache.replacement_policy = LRURP()
-	root.system.cpu.dcache.replacement_policy = LRURP()
-	root.system.l2cache.replacement_policy = LRURP()
-elif (options.MRU):
-	root.system.cpu.icache.replacement_policy = MRURP()
-	root.system.cpu.dcache.replacement_policy = MRURP()
-	root.system.l2cache.replacement_policy = MRURP()
-elif (options.MyMRU):
-	root.system.cpu.icache.replacement_policy = MyMRURP()
-	root.system.cpu.dcache.replacement_policy = MyMRURP()
-	root.system.l2cache.replacement_policy = MyMRURP()
-elif (options.Clock):
-	root.system.cpu.icache.replacement_policy = ClockRP()
-	root.system.cpu.dcache.replacement_policy = ClockRP()
-	root.system.l2cache.replacement_policy = ClockRP()
+########################### add branch predictor ###########################
+if options.mysimple:
+	root.system.cpu.branchPred = MySimpleBP()
+elif options.local:
+	root.system.cpu.branchPred = LocalBP()
+elif options.tournament:
+	root.system.cpu.branchPred = TournamentBP()
+elif options.bimode:
+	root.system.cpu.branchPred = BiModeBP()
+else:
+	root.system.cpu.branchPred = TournamentBP()
+root.system.cpu.branchPred.BTBEntries = options.btbentry
+root.system.cpu.branchPred.RASSize = options.ras
+
+if options.local:
+	root.system.cpu.branchPred.localPredictorSize = options.localsize
+elif options.tournament:
+	root.system.cpu.branchPred.localPredictorSize = options.localsize
+	root.system.cpu.branchPred.localHistoryTableSize = options.localhissize
+	root.system.cpu.branchPred.globalPredictorSize = options.globalsize
+	root.system.cpu.branchPred.choicePredictorSize = options.choicesize
+elif options.bimode:
+	root.system.cpu.branchPred.globalPredictorSize = options.globalsize
+	root.system.cpu.branchPred.choicePredictorSize = options.choicesize
+########################### add branch predictor ###########################
+
+
 
 #root.system.cpu.icache_port = root.system.membus.cpu_side_ports
 #root.system.cpu.dcache_port = root.system.membus.cpu_side_ports
@@ -81,10 +95,14 @@ root.system.system_port = root.system.membus.cpu_side_ports
 # root.system.cpu.interrupts[0].int_requestor = system.membus.cpu_side_ports
 # root.system.cpu.interrupts[0].int_responder = system.membus.mem_side_ports
 
-exe_path = 'tests/test-progs/hello/bin/arm/linux/hello'
-root.system.workload = SEWorkload.init_compatible(exe_path)
+root.system.cpu.max_insts_any_thread = 1000000000
+
 process = Process()
-process.cmd = [exe_path]
+process.cmd = ['test_bench/BFS/bfs','-f','test_bench/BFS/USA-road-d.NY.gr']
+
+exe_path = process.cmd[0]
+root.system.workload = SEWorkload.init_compatible(exe_path)
+
 root.system.cpu.workload = process
 root.system.cpu.createThreads()
 
